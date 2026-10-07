@@ -15,9 +15,7 @@ This repository is a Claude Code plugin marketplace named `claude-code-usage-pan
 
 ## Screenshots
 
-<!-- Replace with real captures -->
 ![Usage pane docked on the right in fullscreen layout](docs/screenshots/usage-pane-dock.png)
-![Usage pane with WARNING context severity](docs/screenshots/usage-pane-warning.png)
 
 ## Features
 
