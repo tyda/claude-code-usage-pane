@@ -1,0 +1,14 @@
+{
+  "name": "claude-code-usage-pane",
+  "owner": { "name": "szuping chen" },
+  "description": "Claude Code Usage Pane: a docked right-side usage dashboard for Claude Code",
+  "plugins": [
+    {
+      "name": "usage-pane",
+      "source": "./plugins/usage-pane",
+      "version": "1.0.0",
+      "description": "Right-side pane with model, context severity, session tokens, 5-hour and 7-day used/left and reset countdowns",
+      "license": "MIT"
+    }
+  ]
+}
