@@ -137,29 +137,25 @@ export const register: Register = on => {
             <Text bold>{pct === undefined ? 'Context' : `Context ${pct}%`}</Text>{' '}
             {pct === undefined ? <Text dimColor>Unavailable</Text> : <Text color={tone(pct)}>{bar(pct)}</Text>}
           </Text>
-          <Text dimColor>
-            {ctx?.tokens !== undefined && ctx.window
-              ? `${kTokens(ctx.tokens)} / ${kTokens(ctx.window)}`
-              : ctx?.window
-                ? `window ${kTokens(ctx.window)}`
-                : 'window Unavailable'}
-          </Text>
-          {pct === undefined ? (
-            <Text dimColor>Status: Unavailable</Text>
-          ) : (
-            <Text>
-              Status: <Text bold color={tone(pct)}>{severity(pct)}</Text>
+          <Text>
+            <Text dimColor>
+              {ctx?.tokens !== undefined && ctx.window
+                ? `${kTokens(ctx.tokens)} / ${kTokens(ctx.window)}`
+                : ctx?.window
+                  ? `window ${kTokens(ctx.window)}`
+                  : 'window Unavailable'}
             </Text>
-          )}
+            {' · '}
+            {pct === undefined ? (
+              <Text dimColor>Status Unavailable</Text>
+            ) : (
+              <Text bold color={tone(pct)}>{severity(pct)}</Text>
+            )}
+          </Text>
+          <Text>{sumsLive ? `In ${kTokens(sumsLive.input)} · Out ${kTokens(sumsLive.output)}` : 'In/Out Unavailable'}</Text>
+          {e.props.placement === 'dock' ? null : <Text dimColor>placement: inline (needs fullscreen)</Text>}
         </Box>
         {limit('five_hour', '5-hour')}
-        <Box flexDirection="column">
-          <Text bold>Session</Text>
-          <Text>{`Tokens ${ctx?.tokens !== undefined ? kTokens(ctx.tokens) : 'Unavailable'}`}</Text>
-          <Text>{`Input ${sumsLive ? kTokens(sumsLive.input) : 'Unavailable'}`}</Text>
-          <Text>{`Output ${sumsLive ? kTokens(sumsLive.output) : 'Unavailable'}`}</Text>
-          <Text dimColor>{e.props.placement === 'dock' ? 'placement: dock (right)' : 'placement: inline (needs fullscreen)'}</Text>
-        </Box>
         {limit('seven_day', '7-day')}
         {e.surface === 'terminal' || e.surface === 'desktop' ? <Client key="tree" module="./tree.tsx" /> : null}
       </Box>

@@ -1,16 +1,15 @@
 import type { ClientModule } from 'claude-code'
 
 const FRAME_MS = 400
-const CANOPY = ['   .@@@.   ', '  @@@@@@@  ', ' @@@@@@@@@ ', '  @@@@@@@  ']
-const TRUNK = ['    \\|/    ', '     |     ']
+const CANOPY = ['   .@@@.   ', '  @@@@@@@  ', ' @@@@@@@@@ ']
+const TRUNK = ['    \\|/    ']
 const GROUND = ' ~~~~~~~~~ '
 const SWAY = [0, 0, 1, 1, 0, 0, -1, -1]
 const LEAF_PATH = [
+  [1, 9],
   [2, 10],
-  [3, 10],
-  [4, 9],
-  [5, 8],
-  [6, 9],
+  [3, 9],
+  [4, 8],
 ]
 const LEAF_EVERY = 16
 
