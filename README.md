@@ -16,7 +16,7 @@ This repository is a Claude Code plugin marketplace named `claude-code-usage-pan
 
 ## Screenshots
 
-![Usage pane docked on the right in fullscreen layout](docs/screenshots/usage-pane-dock.png)
+![Usage pane docked on the right in fullscreen layout](docs/screenshots/usage-pane-apple-tree.png)
 
 ## Features
 
