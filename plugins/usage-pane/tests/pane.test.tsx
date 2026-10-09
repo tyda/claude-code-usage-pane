@@ -119,3 +119,18 @@ test('sums input and output from completed main-loop turns only', async ($, on) 
   expect(await ui.find({ text: 'Output 6k' })).toBeDefined()
   await ui.unmount()
 })
+
+test('tree sways and drops a leaf on the frame clock', async ($, on) => {
+  mock.clock(on, { now: NOW })
+  on('session.model', () => ({ value: 'claude-opus-5-5' }))
+  on('session.usage', () => ({ value: null }))
+  for (const surface of ['terminal', 'desktop'] as const) {
+    const ui = await $.ui.mount({ ...PANE, surface })
+    expect(await ui.find({ text: /^ {3}\.@@@\./, in: 'tree' })).toBeDefined()
+    await ui.advance(800)
+    expect(await ui.find({ text: /^ {4}\.@@@\./, in: 'tree' })).toBeDefined()
+    expect(await ui.find({ text: /\*/, in: 'tree' })).toBeDefined()
+    await ui.advance(1200)
+    expect(await ui.find({ text: /\*/, in: 'tree' })).toBeUndefined()
+  }
+})

@@ -90,7 +90,7 @@ export const register: Register = on => {
   })
 
   on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => {
-    const { Box, Text } = $.ui.resolve(e)
+    const { Box, Text, Client } = $.ui.resolve(e)
     await read($, tick)
     const [model, usage, now, sums] = await Promise.all([
       $.session.model().catch(() => null),
@@ -153,14 +153,15 @@ export const register: Register = on => {
           )}
         </Box>
         {limit('five_hour', '5-hour')}
-        {limit('seven_day', '7-day')}
         <Box flexDirection="column">
           <Text bold>Session</Text>
           <Text>{`Tokens ${ctx?.tokens !== undefined ? kTokens(ctx.tokens) : 'Unavailable'}`}</Text>
           <Text>{`Input ${sumsLive ? kTokens(sumsLive.input) : 'Unavailable'}`}</Text>
           <Text>{`Output ${sumsLive ? kTokens(sumsLive.output) : 'Unavailable'}`}</Text>
+          <Text dimColor>{e.props.placement === 'dock' ? 'placement: dock (right)' : 'placement: inline (needs fullscreen)'}</Text>
         </Box>
-        <Text dimColor>{e.props.placement === 'dock' ? 'placement: dock (right)' : 'placement: inline (needs fullscreen)'}</Text>
+        {limit('seven_day', '7-day')}
+        {e.surface === 'terminal' || e.surface === 'desktop' ? <Client key="tree" module="./tree.tsx" /> : null}
       </Box>
     )
   })
