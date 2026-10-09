@@ -21,16 +21,35 @@ This repository is a Claude Code plugin marketplace named `claude-code-usage-pan
 ## Features
 
 - **Model**: the model the session is using.
-- **Context**: percent used with a 10-cell bar, `tokens / window` with a severity status, and the session's `In / Out` tokens:
-  - `NORMAL` below 70%
-  - `WARNING` from 70%
-  - `CRITICAL` from 90%
+- **Context**: three compact lines.
+  - Percent used with a 10-cell bar.
+  - `tokens / window` and a severity status: `NORMAL` below 70%, `WARNING` from 70%, `CRITICAL` from 90%.
+  - `In X · Out Y`: input and output tokens summed over main-loop turns. Subagent turns are excluded, and `/clear` resets the totals.
 - **5-hour and 7-day limits**: a bar, `Used X% | Left Y%`, and the time until reset (for example `Reset 2h14m (12:14)` or `Reset 3d0h (10/10 10:00)`).
-- **In / Out**: input and output tokens summed over main-loop turns. Subagent turns are excluded, and `/clear` resets the totals.
-- **Tree**: a small ASCII tree centered at the bottom. A gust ripples across the canopy every few seconds and drops a leaf. Apples ripen from green buds to red, fall to the ground, and grow back. The animation runs on the drawing thread and doesn't refetch usage.
+- **Apple tree**: an animated ASCII tree centered at the bottom of the pane (see below).
 - Refreshes every 30 seconds and after each turn.
 - Any value that isn't reported shows `Unavailable` instead of a guess.
 - Adds a `/usage-pane` command that reopens the pane and reports where it's placed.
+
+## The apple tree
+
+```
+       @@@@@@@
+    @@@@@@@@%@@@@
+  @@@@o@88@@@@@@@@@
+ @@@@@@@@@8@@@@o@@@@
+ @@@o@@@@@@@@@@@@@@@
+  @@@@@@@@@@@&.@@@@
+     @@@@@@@@@@@
+         \|/     *
+          |
+,.'.,;.,_/|\_,.',.,;.
+```
+
+- **Wind**: every few seconds a gust sweeps across the canopy from left to right. The leaves it touches flip to `&` `%` `8` and brighten, and the treetop leans with it. Between gusts a few leaves rustle at random.
+- **Falling leaves**: each gust shakes a leaf `*` loose. It drifts down and rests on the grass for a moment.
+- **Apples**: four apples grow from a green bud `.`, turn yellow, then ripen to red `o`. A ripe apple falls to the ground, lies there for a few seconds, and a new bud grows in its place. Each apple keeps its own 22–32 second cycle, so they rarely fall together.
+- The tree draws on the `terminal` and `desktop` surfaces. Its animation runs on the drawing thread at about 7 frames a second and never refetches usage data.
 
 ## Installation
 
@@ -43,6 +62,13 @@ Run these at the Claude Code prompt in a terminal session:
 
 When asked, choose a scope. User scope is listed first.
 
+To update to the latest version, run these, then restart Claude Code:
+
+```
+/plugin marketplace update claude-code-usage-pane
+/plugin update usage-pane@claude-code-usage-pane
+```
+
 ## Usage
 
 - The pane opens when a session starts. It docks on the right in the fullscreen layout once the terminal is at least 144 columns wide.
@@ -51,7 +77,7 @@ When asked, choose a scope. User scope is listed first.
 
 ## Compatibility
 
-- Claude Code with function-hook plugin support (built and tested on 2.1.292).
+- Claude Code with function-hook plugin support (built and tested on 2.1.295).
 - The pane docks only in the terminal's **fullscreen** layout. In the main-screen layout it opens inline.
 - Draws on the `terminal` and `desktop` surfaces (both are covered by the tests).
 - Rate-limit rows need an account that reports 5-hour and 7-day limits. Otherwise they show `Unavailable`.
@@ -87,6 +113,7 @@ plugins/usage-pane/
   .claude-plugin/plugin.json        plugin manifest
   hooks/hooks.json                  hooks module list
   hooks/register.tsx                pane, command and event hooks
+  hooks/tree.tsx                    animated apple tree (Client surface module)
   hooks/usage.ts                    severity and remaining-percentage helpers
   types/index.d.ts                  $.state contract
   tests/pane.test.tsx               plugin tests
