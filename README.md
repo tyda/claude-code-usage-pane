@@ -10,7 +10,7 @@ A usage dashboard for Claude Code that docks on the right side of the terminal. 
 - a countdown to each limit's reset
 - session input and output tokens
 - `WARNING` and `CRITICAL` states as context fills up
-- an animated ASCII tree at the bottom
+- an animated ASCII apple tree at the bottom
 
 This repository is a Claude Code plugin marketplace named `claude-code-usage-pane`. It ships one plugin, `usage-pane`.
 
@@ -27,7 +27,7 @@ This repository is a Claude Code plugin marketplace named `claude-code-usage-pan
   - `CRITICAL` from 90%
 - **5-hour and 7-day limits**: a bar, `Used X% | Left Y%`, and the time until reset (for example `Reset 2h14m (12:14)` or `Reset 3d0h (10/10 10:00)`).
 - **In / Out**: input and output tokens summed over main-loop turns. Subagent turns are excluded, and `/clear` resets the totals.
-- **Tree**: a small ASCII tree centered at the bottom. A gust ripples across the canopy every few seconds and drops a leaf. The animation runs on the drawing thread and doesn't refetch usage.
+- **Tree**: a small ASCII tree centered at the bottom. A gust ripples across the canopy every few seconds and drops a leaf. Apples ripen from green buds to red, fall to the ground, and grow back. The animation runs on the drawing thread and doesn't refetch usage.
 - Refreshes every 30 seconds and after each turn.
 - Any value that isn't reported shows `Unavailable` instead of a guess.
 - Adds a `/usage-pane` command that reopens the pane and reports where it's placed.

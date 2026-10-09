@@ -10,6 +10,16 @@ const GUST_PERIOD = 40
 const GUST_LEAD = 6
 const LEAF_RELEASE = 18
 const LEAF_LIFE = 16
+const APPLES = [
+  { r: 2, c: MID - 4, period: 150, offset: 60 },
+  { r: 3, c: MID + 5, period: 190, offset: 30 },
+  { r: 4, c: MID - 6, period: 170, offset: 100 },
+  { r: 5, c: MID + 4, period: 210, offset: 0 },
+]
+const APPLE_BUD = 10
+const APPLE_RIPE = 25
+const APPLE_ON_GROUND = 25
+const APPLE_GONE = 15
 const ROOTS = '_/|\\_'
 const GRASS = ',.\'.,;.,\'.,.;,.\',.,;.'
 
@@ -58,6 +68,16 @@ function scene(t: number): Cell[][] {
   const ground = Array.from({ length: W }, (_, c): Cell => ({ ch: GRASS[c], dim: true }))
   for (let i = 0; i < ROOTS.length; i++) ground[MID - 2 + i] = { ch: ROOTS[i], color: 'warning' }
   rows.push(ground)
+
+  const groundRow = rows.length - 1
+  for (const a of APPLES) {
+    const p = (t + a.offset) % a.period
+    const drop = a.period - APPLE_ON_GROUND - APPLE_GONE
+    if (p < APPLE_BUD) rows[a.r][a.c] = { ch: '.', color: 'success', bold: true }
+    else if (p < APPLE_RIPE) rows[a.r][a.c] = { ch: 'o', color: 'warning' }
+    else if (p < drop) rows[a.r][a.c] = { ch: 'o', color: 'error', bold: true }
+    else if (p < a.period - APPLE_GONE) rows[Math.min(a.r + p - drop, groundRow)][a.c] = { ch: 'o', color: 'error', bold: true }
+  }
 
   const k = phase - LEAF_RELEASE
   if (k >= 0 && k < LEAF_LIFE) {
