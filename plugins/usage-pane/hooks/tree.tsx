@@ -1,19 +1,77 @@
 import type { ClientModule } from 'claude-code'
 
-const FRAME_MS = 400
-const CANOPY = ['   .@@@.   ', '  @@@@@@@  ', ' @@@@@@@@@ ']
-const TRUNK = ['    \\|/    ']
-const GROUND = ' ~~~~~~~~~ '
-const SWAY = [0, 0, 1, 1, 0, 0, -1, -1]
-const LEAF_PATH = [
-  [1, 9],
-  [2, 10],
-  [3, 9],
-  [4, 8],
-]
-const LEAF_EVERY = 16
+const FRAME_MS = 150
+const W = 21
+const MID = 10
+const CANOPY_HALF = [3, 6, 8, 9, 9, 8, 5]
+const LEAF = '@'
+const RUSTLE = ['&', '%', '8']
+const GUST_PERIOD = 40
+const GUST_LEAD = 6
+const LEAF_RELEASE = 18
+const LEAF_LIFE = 16
+const ROOTS = '_/|\\_'
+const GRASS = ',.\'.,;.,\'.,.;,.\',.,;.'
 
-const shift = (row: string, by: number) => (by > 0 ? ' ' + row.slice(0, -1) : by < 0 ? row.slice(1) + ' ' : row)
+type Cell = { ch: string; color?: string; dim?: boolean; bold?: boolean }
+
+const hash = (a: number, b: number, c = 0) => {
+  let h = (a * 374761393 + b * 668265263 + c * 2147483647) | 0
+  h = Math.imul(h ^ (h >>> 13), 1274126177)
+  return (h ^ (h >>> 16)) >>> 0
+}
+
+const blank = (): Cell[] => Array.from({ length: W }, () => ({ ch: ' ' }))
+
+function scene(t: number): Cell[][] {
+  const phase = t % GUST_PERIOD
+  const gust = phase - GUST_LEAD
+  const gusting = gust >= 0 && gust <= W
+  const rows: Cell[][] = []
+
+  CANOPY_HALF.forEach((half, r) => {
+    const row = blank()
+    const lean = r < 2 && gust > 4 && gust < 16 ? 1 : 0
+    for (let c = MID - half; c <= MID + half; c++) {
+      const x = c + lean
+      const inGust = gusting && Math.abs(c - gust + r * 0.5) < 1.5
+      const rustle = hash(r, c, t) % 29 === 0
+      const shade = hash(r, c) % 4 === 0
+      row[x] =
+        inGust || rustle
+          ? { ch: RUSTLE[hash(r, c, t >> 1) % RUSTLE.length], color: 'success', bold: inGust }
+          : { ch: LEAF, color: 'success', dim: shade }
+    }
+    rows.push(row)
+  })
+
+  const trunk = blank()
+  trunk[MID - 1] = { ch: '\\', color: 'warning' }
+  trunk[MID] = { ch: '|', color: 'warning' }
+  trunk[MID + 1] = { ch: '/', color: 'warning' }
+  rows.push(trunk)
+
+  const stem = blank()
+  stem[MID] = { ch: '|', color: 'warning' }
+  rows.push(stem)
+
+  const ground = Array.from({ length: W }, (_, c): Cell => ({ ch: GRASS[c], dim: true }))
+  for (let i = 0; i < ROOTS.length; i++) ground[MID - 2 + i] = { ch: ROOTS[i], color: 'warning' }
+  rows.push(ground)
+
+  const k = phase - LEAF_RELEASE
+  if (k >= 0 && k < LEAF_LIFE) {
+    const top = CANOPY_HALF.length
+    const r = Math.min(top + Math.floor(k / 3), rows.length - 1)
+    const landed = r === rows.length - 1
+    const c = Math.min(W - 1, MID + 6 + Math.floor(Math.min(k, 9) / 2) + (landed ? 0 : Math.round(Math.sin(k))))
+    rows[r][c] = { ch: landed ? '.' : '*', color: landed ? 'warning' : 'success', bold: !landed }
+  }
+
+  return rows
+}
+
+const same = (a: Cell, b: Cell) => a.color === b.color && !!a.dim === !!b.dim && !!a.bold === !!b.bold
 
 const Tree: ClientModule<null, number> = (_props, s) => {
   const { Box, Text } = s.elements
@@ -21,33 +79,23 @@ const Tree: ClientModule<null, number> = (_props, s) => {
     let t = 0
     s.every(FRAME_MS, () => s.setState(++t))
   }
-  const t = s.state ?? 0
-  const sway = SWAY[t % SWAY.length]
-  const leafStep = t % LEAF_EVERY
-  const leaf = leafStep < LEAF_PATH.length ? LEAF_PATH[leafStep] : null
-
-  const rows = [
-    ...CANOPY.map(r => ({ text: shift(r, sway), color: 'success' })),
-    ...TRUNK.map(r => ({ text: r, color: 'warning' })),
-    { text: GROUND, color: undefined },
-  ]
 
   return (
     <Box flexDirection="column">
-      {rows.map(({ text, color }, i) => {
-        if (leaf && leaf[0] === i) {
-          const [, x] = leaf
-          return (
-            <Text key={String(i)}>
-              <Text color={color} dimColor={!color}>{text.slice(0, x)}</Text>
-              <Text color="success">*</Text>
-              <Text color={color} dimColor={!color}>{text.slice(x + 1)}</Text>
-            </Text>
-          )
+      {scene(s.state ?? 0).map((row, i) => {
+        const runs: Cell[] = []
+        for (const cell of row) {
+          const last = runs[runs.length - 1]
+          if (last && same(last, cell)) last.ch += cell.ch
+          else runs.push({ ...cell })
         }
         return (
-          <Text key={String(i)} color={color} dimColor={!color}>
-            {text}
+          <Text key={String(i)}>
+            {runs.map((run, j) => (
+              <Text key={String(j)} color={run.color} dimColor={run.dim} bold={run.bold}>
+                {run.ch}
+              </Text>
+            ))}
           </Text>
         )
       })}

@@ -1,6 +1,6 @@
 {
   "name": "usage-pane",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Right-side pane with model, context severity, session tokens, 5-hour and 7-day used/left and reset countdowns",
   "author": { "name": "szuping chen" },
   "types": "./types/index.d.ts"

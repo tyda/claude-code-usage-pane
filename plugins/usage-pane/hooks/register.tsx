@@ -157,7 +157,11 @@ export const register: Register = on => {
         </Box>
         {limit('five_hour', '5-hour')}
         {limit('seven_day', '7-day')}
-        {e.surface === 'terminal' || e.surface === 'desktop' ? <Client key="tree" module="./tree.tsx" /> : null}
+        {e.surface === 'terminal' || e.surface === 'desktop' ? (
+          <Box justifyContent="center">
+            <Client key="tree" module="./tree.tsx" />
+          </Box>
+        ) : null}
       </Box>
     )
   })
