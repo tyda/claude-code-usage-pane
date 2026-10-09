@@ -8,8 +8,9 @@ A usage dashboard for Claude Code that docks on the right side of the terminal. 
 - 7-day usage
 - the percentage remaining on each limit
 - a countdown to each limit's reset
-- session token usage
+- session input and output tokens
 - `WARNING` and `CRITICAL` states as context fills up
+- an animated ASCII tree at the bottom
 
 This repository is a Claude Code plugin marketplace named `claude-code-usage-pane`. It ships one plugin, `usage-pane`.
 
@@ -20,12 +21,13 @@ This repository is a Claude Code plugin marketplace named `claude-code-usage-pan
 ## Features
 
 - **Model**: the model the session is using.
-- **Context**: percent used with a 10-cell bar, `tokens / window`, and a severity status:
+- **Context**: percent used with a 10-cell bar, `tokens / window` with a severity status, and the session's `In / Out` tokens:
   - `NORMAL` below 70%
   - `WARNING` from 70%
   - `CRITICAL` from 90%
 - **5-hour and 7-day limits**: a bar, `Used X% | Left Y%`, and the time until reset (for example `Reset 2h14m (12:14)` or `Reset 3d0h (10/10 10:00)`).
-- **Session**: context tokens, plus input and output tokens summed over main-loop turns. Subagent turns are excluded, and `/clear` resets the totals.
+- **In / Out**: input and output tokens summed over main-loop turns. Subagent turns are excluded, and `/clear` resets the totals.
+- **Tree**: a small ASCII tree centered at the bottom. A gust ripples across the canopy every few seconds and drops a leaf. The animation runs on the drawing thread and doesn't refetch usage.
 - Refreshes every 30 seconds and after each turn.
 - Any value that isn't reported shows `Unavailable` instead of a guess.
 - Adds a `/usage-pane` command that reopens the pane and reports where it's placed.
@@ -45,7 +47,7 @@ When asked, choose a scope. User scope is listed first.
 
 - The pane opens when a session starts. It docks on the right in the fullscreen layout once the terminal is at least 144 columns wide.
 - Run `/usage-pane` to open it at any time. When you open it yourself, it docks from 110 columns.
-- The footer line shows where the pane is placed: `placement: dock (right)` or `placement: inline (needs fullscreen)`.
+- When the pane isn't docked, a line under Context reads `placement: inline (needs fullscreen)`.
 
 ## Compatibility
 
@@ -62,7 +64,7 @@ When asked, choose a scope. User scope is listed first.
 | Pane shows below the transcript instead of on the right | Set `"tui": "fullscreen"` (or use `/config`), restart, and make the terminal at least 110 columns wide. Running `/usage-pane` tells you the current layout and width. |
 | Pane doesn't open at startup | Startup opening needs at least 144 columns. Widen the terminal or run `/usage-pane`. |
 | 5-hour / 7-day rows show `Unavailable` | Your account or provider isn't reporting rate limits for this session. |
-| Input / Output show `Unavailable` | No main-loop turn has finished yet since the session started or since `/clear`. |
+| `In/Out Unavailable` | No main-loop turn has finished yet since the session started or since `/clear`. |
 | `Marketplace file not found` | Check that the repository is `tyda/claude-code-usage-pane` and that `.claude-plugin/marketplace.json` exists on the default branch. |
 | `Plugin "usage-pane" not found in marketplace` | Install with `usage-pane@claude-code-usage-pane` exactly. |
 | The plugin fails to load | Run `claude --debug` and look for lines beginning `usage-pane:`. |
