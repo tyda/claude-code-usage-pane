@@ -38,7 +38,17 @@ const bar = (pct: number) => {
 
 const kTokens = (n: number) => (n >= 1000 ? `${Math.round(n / 1000)}k` : String(n))
 
-export const register: Register = on => {
+const marqueeText = async ($: EngineInterface, path: string) => {
+  if (!path) return null
+  const raw = await $.fs.read(path).catch(() => null)
+  if (typeof raw !== 'string') return null
+  const text = raw.split(/\r?\n/).map(l => l.trim()).filter(Boolean).join('   ·   ')
+  return text || null
+}
+
+export const register: Register = (on, options) => {
+  const marqueeFile = typeof options.marqueeFile === 'string' ? options.marqueeFile.trim() : ''
+
   on('session.start', async ($, e, next) => {
     await $.command.register({
       name: 'usage-pane',
@@ -92,11 +102,12 @@ export const register: Register = on => {
   on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => {
     const { Box, Text, Client } = $.ui.resolve(e)
     await read($, tick)
-    const [model, usage, now, sums] = await Promise.all([
+    const [model, usage, now, sums, marquee] = await Promise.all([
       $.session.model().catch(() => null),
       $.session.usage().catch(() => null),
       $.clock.now(),
       read($, totals),
+      marqueeText($, marqueeFile),
     ])
 
     const limit = (kind: string, label: string) => {
@@ -161,6 +172,9 @@ export const register: Register = on => {
           <Box justifyContent="center">
             <Client key="tree" module="./tree.tsx" />
           </Box>
+        ) : null}
+        {marquee && (e.surface === 'terminal' || e.surface === 'desktop') ? (
+          <Client key="marquee" module="./marquee.tsx" props={{ text: marquee, width: e.props.bodyColumns }} />
         ) : null}
       </Box>
     )

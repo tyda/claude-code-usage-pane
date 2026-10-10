@@ -51,6 +51,15 @@ This repository is a Claude Code plugin marketplace named `claude-code-usage-pan
 - **Apples**: four apples grow from a green bud `.`, turn yellow, then ripen to red `o`. A ripe apple falls to the ground, lies there for a few seconds, and a new bud grows in its place. Each apple keeps its own 22–32 second cycle, so they rarely fall together.
 - The tree draws on the `terminal` and `desktop` surfaces. Its animation runs on the drawing thread at about 7 frames a second and never refetches usage data.
 
+## Marquee
+
+A one-line marquee under the tree scrolls the text of a file you choose.
+
+- Set the file in `/config` under **usage-pane → Marquee file** (an absolute path, for example `D:\notes\marquee.txt`). Leave it empty to hide the marquee.
+- Non-empty lines are joined into one line separated by `·`. Wide (CJK) characters scroll one character at a time.
+- The file is reread every 30 seconds and after each turn, so edits show up without a restart.
+- A missing or empty file hides the marquee.
+
 ## Installation
 
 Run these at the Claude Code prompt in a terminal session:

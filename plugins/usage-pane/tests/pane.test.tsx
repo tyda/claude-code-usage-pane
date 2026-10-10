@@ -1,5 +1,6 @@
 import { expect, mock, test } from 'claude-code/testing'
 import { remaining, severity } from '../hooks/usage'
+import { frame } from '../hooks/marquee'
 
 const PANE = {
   plugin: 'usage-pane',
@@ -155,4 +156,33 @@ test('apples ripen on the tree, fall to the ground and grow back', async ($, on)
   }
   expect({ fell, cleared, regrown }).toEqual({ fell: true, cleared: true, regrown: true })
   await ui.unmount()
+})
+
+test('marquee scrolls the configured file joined into one line', { options: { marqueeFile: 'D:/notes/marquee.txt' } }, async ($, on) => {
+  mock.clock(on, { now: NOW })
+  on('session.model', () => ({ value: 'claude-opus-5-5' }))
+  on('session.usage', () => ({ value: null }))
+  on('fs.read', () => ({ value: '公告一\r\n\r\nsecond line\n' }))
+  for (const surface of ['terminal', 'desktop'] as const) {
+    const ui = await $.ui.mount({ ...PANE, surface })
+    const first = (await ui.find({ type: 'Text', in: 'marquee' }))?.text ?? ''
+    expect(first.startsWith('公告一   ·   second line')).toBe(true)
+    await ui.advance(200)
+    expect((await ui.find({ type: 'Text', in: 'marquee' }))?.text.startsWith('告一')).toBe(true)
+    await ui.unmount()
+  }
+})
+
+test('no marquee without a configured file', async ($, on) => {
+  mock.clock(on, { now: NOW })
+  on('session.model', () => ({ value: 'claude-opus-5-5' }))
+  on('session.usage', () => ({ value: null }))
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  await expect(ui.find({ in: 'marquee' })).rejects.toThrow('no Client keyed "marquee"')
+  await ui.unmount()
+})
+
+test('marquee frame fits wide characters into the width', () => {
+  expect(frame('ab中', 5, 0)).toBe('ab中 ')
+  expect(frame('ab中', 4, 1)).toBe('b中 ')
 })
