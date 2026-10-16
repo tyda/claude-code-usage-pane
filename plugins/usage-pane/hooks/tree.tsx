@@ -3,7 +3,15 @@ import type { ClientModule } from 'claude-code'
 const FRAME_MS = 150
 const W = 21
 const MID = 10
-const CANOPY_HALF = [3, 6, 8, 9, 9, 8, 5]
+const CANOPIES = [
+  [5, 8, 5],
+  [4, 8, 8, 5],
+  [3, 7, 9, 8, 5],
+  [3, 6, 8, 9, 8, 5],
+  [3, 6, 8, 9, 9, 8, 5],
+]
+export const FULL_ROWS = 10
+export const MIN_ROWS = 5
 const LEAF = '@'
 const RUSTLE = ['&', '%', '8']
 const GUST_PERIOD = 40
@@ -33,13 +41,17 @@ const hash = (a: number, b: number, c = 0) => {
 
 const blank = (): Cell[] => Array.from({ length: W }, () => ({ ch: ' ' }))
 
-function scene(t: number): Cell[][] {
+export type TreeProps = { rows: number }
+
+function scene(t: number, height: number): Cell[][] {
+  const withStem = height >= FULL_ROWS
+  const canopy = CANOPIES[Math.max(0, Math.min(CANOPIES.length - 1, height - (withStem ? 3 : 2) - 3))]
   const phase = t % GUST_PERIOD
   const gust = phase - GUST_LEAD
   const gusting = gust >= 0 && gust <= W
   const rows: Cell[][] = []
 
-  CANOPY_HALF.forEach((half, r) => {
+  canopy.forEach((half, r) => {
     const row = blank()
     const lean = r < 2 && gust > 4 && gust < 16 ? 1 : 0
     for (let c = MID - half; c <= MID + half; c++) {
@@ -61,9 +73,11 @@ function scene(t: number): Cell[][] {
   trunk[MID + 1] = { ch: '/', color: 'warning' }
   rows.push(trunk)
 
-  const stem = blank()
-  stem[MID] = { ch: '|', color: 'warning' }
-  rows.push(stem)
+  if (withStem) {
+    const stem = blank()
+    stem[MID] = { ch: '|', color: 'warning' }
+    rows.push(stem)
+  }
 
   const ground = Array.from({ length: W }, (_, c): Cell => ({ ch: GRASS[c], dim: true }))
   for (let i = 0; i < ROOTS.length; i++) ground[MID - 2 + i] = { ch: ROOTS[i], color: 'warning' }
@@ -71,6 +85,7 @@ function scene(t: number): Cell[][] {
 
   const groundRow = rows.length - 1
   for (const a of APPLES) {
+    if (a.r >= canopy.length - 1 || Math.abs(a.c - MID) >= canopy[a.r]) continue
     const p = (t + a.offset) % a.period
     const drop = a.period - APPLE_ON_GROUND - APPLE_GONE
     if (p < APPLE_BUD) rows[a.r][a.c] = { ch: '.', color: 'success', bold: true }
@@ -81,7 +96,7 @@ function scene(t: number): Cell[][] {
 
   const k = phase - LEAF_RELEASE
   if (k >= 0 && k < LEAF_LIFE) {
-    const top = CANOPY_HALF.length
+    const top = canopy.length
     const r = Math.min(top + Math.floor(k / 3), rows.length - 1)
     const landed = r === rows.length - 1
     const c = Math.min(W - 1, MID + 6 + Math.floor(Math.min(k, 9) / 2) + (landed ? 0 : Math.round(Math.sin(k))))
@@ -93,7 +108,7 @@ function scene(t: number): Cell[][] {
 
 const same = (a: Cell, b: Cell) => a.color === b.color && !!a.dim === !!b.dim && !!a.bold === !!b.bold
 
-const Tree: ClientModule<null, number> = (_props, s) => {
+const Tree: ClientModule<TreeProps, number> = (props, s) => {
   const { Box, Text } = s.elements
   if (s.state === undefined) {
     let t = 0
@@ -102,7 +117,7 @@ const Tree: ClientModule<null, number> = (_props, s) => {
 
   return (
     <Box flexDirection="column">
-      {scene(s.state ?? 0).map((row, i) => {
+      {scene(s.state ?? 0, props.rows).map((row, i) => {
         const runs: Cell[] = []
         for (const cell of row) {
           const last = runs[runs.length - 1]

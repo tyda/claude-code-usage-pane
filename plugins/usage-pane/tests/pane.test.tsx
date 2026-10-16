@@ -11,7 +11,7 @@ const PANE = {
     isFocused: false,
     bodyColumns: 34,
     placement: 'dock',
-    scroll: { offset: 0, bodyRows: 20 },
+    scroll: { offset: 0, bodyRows: 40 },
     view: {},
   },
 } as const
@@ -156,6 +156,22 @@ test('apples ripen on the tree, fall to the ground and grow back', async ($, on)
   }
   expect({ fell, cleared, regrown }).toEqual({ fell: true, cleared: true, regrown: true })
   await ui.unmount()
+})
+
+test('a short pane shrinks the tree to fit, then drops it', async ($, on) => {
+  mock.clock(on, { now: NOW })
+  on('session.model', () => ({ value: 'claude-opus-5-5' }))
+  on('session.usage', () => ({ value: null }))
+  const rowsOf = async (bodyRows: number) => {
+    const ui = await $.ui.mount({ ...PANE, surface: 'terminal', props: { ...PANE.props, scroll: { offset: 0, bodyRows } } })
+    const tree = await ui.find({ type: 'Box', in: 'tree' }).catch(() => undefined)
+    await ui.unmount()
+    return tree ? tree.text.length / 21 : 0
+  }
+  expect(await rowsOf(40)).toBe(10)
+  expect(await rowsOf(24)).toBe(8)
+  expect(await rowsOf(21)).toBe(5)
+  expect(await rowsOf(20)).toBe(0)
 })
 
 test('marquee scrolls the configured file joined into one line', { options: { marqueeFile: 'D:/notes/marquee.txt' } }, async ($, on) => {

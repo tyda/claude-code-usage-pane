@@ -2,6 +2,7 @@ import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register, SessionRateLimit } from 'claude-code'
 import type { SessionTotals } from '../types'
 import { remaining, severity, tone } from './usage'
+import { FULL_ROWS, MIN_ROWS } from './tree'
 
 const PANE = 'usage-pane'
 const TICK_MS = 30_000
@@ -136,6 +137,11 @@ export const register: Register = (on, options) => {
     const ctx = usage?.context
     const pct = ctx?.percent
     const sumsLive = sums && usage && sums.startedAt === usage.startedAt ? sums : null
+    const graphic = e.surface === 'terminal' || e.surface === 'desktop'
+    const inline = e.props.placement !== 'dock'
+    const showMarquee = !!marquee && graphic
+    // Rows above the tree: Model 2, Context 3 (+1 inline note), both limits 3 each, plus the gaps between them.
+    const treeRows = Math.min(FULL_ROWS, e.props.scroll.bodyRows - (2 + 3 + (inline ? 1 : 0) + 3 + 3 + 4) - 1 - (showMarquee ? 2 : 0))
 
     return (
       <Box flexDirection="column" gap={1}>
@@ -164,16 +170,16 @@ export const register: Register = (on, options) => {
             )}
           </Text>
           <Text>{sumsLive ? `In ${kTokens(sumsLive.input)} · Out ${kTokens(sumsLive.output)}` : 'In/Out Unavailable'}</Text>
-          {e.props.placement === 'dock' ? null : <Text dimColor>placement: inline (needs fullscreen)</Text>}
+          {inline ? <Text dimColor>placement: inline (needs fullscreen)</Text> : null}
         </Box>
         {limit('five_hour', '5-hour')}
         {limit('seven_day', '7-day')}
-        {e.surface === 'terminal' || e.surface === 'desktop' ? (
+        {graphic && treeRows >= MIN_ROWS ? (
           <Box justifyContent="center">
-            <Client key="tree" module="./tree.tsx" />
+            <Client key="tree" module="./tree.tsx" props={{ rows: treeRows }} />
           </Box>
         ) : null}
-        {marquee && (e.surface === 'terminal' || e.surface === 'desktop') ? (
+        {showMarquee ? (
           <Client key="marquee" module="./marquee.tsx" props={{ text: marquee, width: e.props.bodyColumns }} />
         ) : null}
       </Box>
