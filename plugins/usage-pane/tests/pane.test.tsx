@@ -123,17 +123,20 @@ test('pikachu blinks, twitches an ear and sparks from its cheeks', async ($, on)
   on('session.usage', () => ({ value: null }))
   for (const surface of ['terminal', 'desktop'] as const) {
     const ui = await $.ui.mount({ ...PANE, surface })
-    const text = async () => (await ui.find({ type: 'Box', in: 'tree' }))?.text ?? ''
+    const text = async () => {
+      const runs = await ui.findAll({ type: 'Text', in: 'tree' })
+      return runs.map(r => `${r.props.color ?? ''}/${r.props.backgroundColor ?? ''}:${r.text}`).join('|')
+    }
     const still = await text()
-    expect(still).toContain('|  o     o  |')
-    expect(still).toContain('(_)')
+    expect(still).toContain('#ffffff')
+    expect(still).toContain('▀')
     expect(still).not.toContain('*')
     let blinked = false
     let sparked = false
     for (let i = 0; i < 40; i++) {
       await ui.advance(150)
       const now = await text()
-      if (now.includes('|  -     -  |')) blinked = true
+      if (!now.includes('#ffffff')) blinked = true
       if (now.includes('*')) sparked = true
     }
     expect({ blinked, sparked }).toEqual({ blinked: true, sparked: true })

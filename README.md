@@ -10,7 +10,7 @@ A usage dashboard for Claude Code that docks on the right side of the terminal. 
 - a countdown to each limit's reset
 - session input and output tokens
 - `WARNING` and `CRITICAL` states as context fills up
-- an animated ASCII Pikachu at the bottom
+- an animated pixel-art Pikachu at the bottom
 
 This repository is a Claude Code plugin marketplace named `claude-code-usage-pane`. It ships one plugin, `usage-pane`.
 
@@ -26,30 +26,33 @@ This repository is a Claude Code plugin marketplace named `claude-code-usage-pan
   - `tokens / window` and a severity status: `NORMAL` below 70%, `WARNING` from 70%, `CRITICAL` from 90%.
   - `In X · Out Y`: input and output tokens summed over main-loop turns. Subagent turns are excluded, and `/clear` resets the totals.
 - **5-hour and 7-day limits**: a bar, `Used X% | Left Y%`, and the time until reset (for example `Reset 2h14m (12:14)` or `Reset 3d0h (10/10 10:00)`).
-- **Pikachu**: an animated ASCII Pikachu at the bottom of the pane (see below).
+- **Pikachu**: an animated pixel-art Pikachu at the bottom of the pane (see below).
 - Refreshes every 30 seconds and after each turn.
 - Any value that isn't reported shows `Unavailable` instead of a guess.
 - Adds a `/usage-pane` command that reopens the pane and reports where it's placed.
 
 ## Pikachu
 
+A full-color pixel-art Pikachu drawn with half blocks `▀` `▄` (yellow body, black ear tips and eyes, red cheeks, lightning tail):
+
 ```
-\.             ./
- \:.         .:/  /|
-  \`-._____.-'/  / |
-  |  o     o  | /_ |
-  |(@) \_/ (@)|   /
-   \         /   /
-  /`-._____.-'\ /
- ( |         | )
-  \|_________|/
-,.'.(_);.,'(_).;,.',.
+██▄           ▄██
+ ▀██▄       ▄██▀ ▄███
+  ▄███████████▄ ▀██▀
+ ███████████████ ▄██▀
+ ███████████████ ▀█▄▄
+ ▀█████████████▀▄█▀
+  ▄█████████████▀
+ ▀▀ █████████ ▀▀
+   ▄███▀▀▀███▄
+,.'.,;.,'.,.;,.',.,;.
 ```
 
-- **Blink**: every 6 seconds the eyes close `-` for a moment.
-- **Sparks**: every 6 seconds the red cheeks `@` flash yellow and crackle with sparks `*` `+`.
+- **Blink**: every 6 seconds the eyes close for a moment.
+- **Sparks**: every 6 seconds the red cheeks flash yellow and crackle with sparks `*` `+`.
 - **Ear twitch**: now and then the right ear flicks outward.
-- When the pane is short, Pikachu drops rows to fit and hides its tail.
+- When the pane is short, Pikachu drops pixel rows to fit, keeping the face.
+- It needs a terminal with true color; it uses fixed colors rather than the theme.
 - It draws on the `terminal` and `desktop` surfaces. Its animation runs on the drawing thread at about 7 frames a second and never refetches usage data.
 
 ## Marquee

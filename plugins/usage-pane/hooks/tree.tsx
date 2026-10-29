@@ -2,49 +2,58 @@ import type { ClientModule } from 'claude-code'
 
 const FRAME_MS = 150
 const W = 21
-const ART = [
-  '\.             ./',
-  ' \:.         .:/',
-  "  \`-._____.-'/",
-  '  |  o     o  |',
-  '  |(@) \_/ (@)|',
-  '   \         /',
-  "  /`-._____.-'\\",
-  ' ( |         | )',
-  '  \|_________|/',
+// Two pixels per terminal row, drawn as half blocks: K ear tip, E eye, W eye shine, R cheek, M tongue, B tail base.
+const PIXELS = [
+  'KK.............KK....',
+  'KKK...........KKK....',
+  '.KYY.........YYK..YYY',
+  '..YYY.......YYY..YYYY',
+  '...YYYYYYYYYYY..YYYY.',
+  '..YYYYYYYYYYYYY..YY..',
+  '.YYYYYYYYYYYYYYY..YYY',
+  '.YYEEYYYYYYYEEYY.YYY.',
+  '.YYEWYYYYYYYEWYY.YY..',
+  '.RRYYYYYYYYYYYRR..YYY',
+  '.RRYYYEYYYEYYYRR.YY..',
+  '..YYYYYEMEYYYYY.YY...',
+  '...YYYYYMYYYYYBBY....',
+  '..YYYYYYYYYYYYYB.....',
+  '.YY.YYYYYYYYY.YY.....',
+  '....YYYYYYYYY........',
+  '....YYYYYYYYY........',
+  '...YYYY...YYYY.......',
 ]
-const TAIL: [number, number, string][] = [
-  [1, 18, '/|'],
-  [2, 17, '/ |'],
-  [3, 16, '/_ |'],
-  [4, 18, '/'],
-  [5, 17, '/'],
-  [6, 16, '/'],
-]
-export const FULL_ROWS = ART.length + 1
+const PALETTE: Record<string, string> = {
+  K: '#3a3a3a',
+  E: '#111111',
+  W: '#ffffff',
+  Y: '#f8d030',
+  R: '#e83838',
+  M: '#a02828',
+  B: '#8a5a20',
+  S: '#fff27a',
+}
+export const FULL_ROWS = PIXELS.length / 2 + 1
 export const MIN_ROWS = 5
-// Rows dropped first as the pane gets shorter, chosen so the face stays readable.
-const DROP_ORDER = [5, 7, 0, 8, 2]
-const EYE_ROW = 3
-const EYES = [5, 11]
-const CHEEK_ROW = 4
-const CHEEKS = [4, 12]
-const MOUTH = [7, 8, 9]
+// Pixel rows dropped first as the pane gets shorter, chosen so the face stays readable.
+const DROP_ORDER = [15, 13, 16, 5, 4, 12, 14, 1, 6, 3]
+const EYE_TOP = 7
+const EYES = [3, 4, 12, 13]
+const CHEEK_ROW = 9
+const SPARK_COLS = [0, 16]
 const BLINK_PERIOD = 40
 const BLINK_AT = 20
 const BLINK_LEN = 2
 const SPARK_PERIOD = 40
 const SPARK_START = 18
 const SPARK_LEN = 12
-const SPARKS = [[0, 3], [-1, 3], [1, 3]]
 const SPARK_CHARS = ['*', '+', '\'', '`']
 const TWITCH_PERIOD = 55
 const TWITCH_AT = 8
 const TWITCH_LEN = 3
-const FEET = [4, 10]
 const GRASS = ',.\'.,;.,\'.,.;,.\',.,;.'
 
-type Cell = { ch: string; color?: string; dim?: boolean; bold?: boolean }
+type Cell = { ch: string; color?: string; bg?: string; dim?: boolean; bold?: boolean }
 
 const hash = (a: number, b: number, c = 0) => {
   let h = (a * 374761393 + b * 668265263 + c * 2147483647) | 0
@@ -52,64 +61,68 @@ const hash = (a: number, b: number, c = 0) => {
   return (h ^ (h >>> 16)) >>> 0
 }
 
-const blank = (): Cell[] => Array.from({ length: W }, () => ({ ch: ' ' }))
-
 export type TreeProps = { rows: number }
 
-function scene(t: number, height: number): Cell[][] {
-  const full = height >= FULL_ROWS
-  const sparking = t % SPARK_PERIOD >= SPARK_START && t % SPARK_PERIOD < SPARK_START + SPARK_LEN
+function pixels(t: number): string[][] {
   const blinking = (t + BLINK_AT) % BLINK_PERIOD < BLINK_LEN
   const twitching = (t + TWITCH_AT) % TWITCH_PERIOD < TWITCH_LEN
+  const sparking = t % SPARK_PERIOD >= SPARK_START && t % SPARK_PERIOD < SPARK_START + SPARK_LEN
+  const px = PIXELS.map(line => [...line])
 
-  const art: Cell[][] = ART.map(line => {
-    const row = blank()
-    for (let c = 0; c < line.length; c++) {
-      if (line[c] !== ' ') row[c] = { ch: line[c], color: 'warning' }
-    }
-    return row
-  })
-
-  const ear = twitching ? 16 : 15
-  art[0][15] = { ch: ' ' }
-  art[0][16] = { ch: ' ' }
-  art[0][0] = { ch: '\\', bold: true }
-  art[0][1] = { ch: '.', bold: true }
-  art[0][ear] = { ch: '.', bold: true }
-  art[0][ear + 1] = { ch: '/', bold: true }
-
-  for (const c of EYES) art[EYE_ROW][c] = { ch: blinking ? '-' : 'o', bold: true }
-  for (const c of MOUTH) art[CHEEK_ROW][c] = { ch: ART[CHEEK_ROW][c], color: 'error' }
-  for (const c of CHEEKS) {
-    art[CHEEK_ROW][c] = { ch: '@', color: sparking ? 'warning' : 'error', bold: true }
-    if (!sparking) continue
-    SPARKS.forEach(([dr, dc], i) => {
-      if (i > 0 && hash(i, c, t) % 3 === 0) return
-      art[CHEEK_ROW + dr][c < 8 ? c - dc : c + dc] = { ch: i === 0 ? '*' : SPARK_CHARS[hash(i, c, t >> 1) % SPARK_CHARS.length], color: 'warning', bold: true }
-    })
-  }
-
-  if (full) {
-    for (const [r, c, s] of TAIL) {
-      for (let i = 0; i < s.length; i++) if (s[i] !== ' ') art[r][c + i] = { ch: s[i], color: 'warning', bold: true }
+  if (blinking) {
+    for (const c of EYES) {
+      px[EYE_TOP][c] = 'Y'
+      px[EYE_TOP + 1][c] = 'E'
     }
   }
-
-  const dropped = new Set(DROP_ORDER.slice(0, Math.max(0, FULL_ROWS - height)))
-  const rows = art.filter((_, r) => !dropped.has(r))
-
-  const ground = Array.from({ length: W }, (_, c): Cell => ({ ch: GRASS[c], dim: true }))
-  for (const c of FEET) {
-    ground[c] = { ch: '(', color: 'warning' }
-    ground[c + 1] = { ch: '_', color: 'warning' }
-    ground[c + 2] = { ch: ')', color: 'warning' }
+  if (twitching) {
+    for (const [r, from, to] of [[0, 15, 16], [1, 14, 16]]) {
+      for (let c = from; c <= to; c++) px[r][c] = '.'
+      for (let c = from; c <= to; c++) px[r][c + 1] = 'K'
+    }
   }
-  rows.push(ground)
+  if (sparking) {
+    for (const row of px) for (let c = 0; c < W; c++) if (row[c] === 'R') row[c] = 'S'
+  }
+  return px
+}
 
+function scene(t: number, height: number): Cell[][] {
+  const dropped = new Set(DROP_ORDER.slice(0, Math.max(0, PIXELS.length - 2 * (height - 1))))
+  const kept = pixels(t).flatMap((row, r) => (dropped.has(r) ? [] : [{ row, r }]))
+  if (kept.length % 2) kept.unshift({ row: [...'.'.repeat(W)], r: -1 })
+
+  const rows: Cell[][] = []
+  for (let i = 0; i < kept.length; i += 2) {
+    const top = kept[i].row
+    const bottom = kept[i + 1].row
+    rows.push(top.map((p, c): Cell => {
+      const up = PALETTE[p]
+      const down = PALETTE[bottom[c]]
+      if (up && down) return { ch: '▀', color: up, bg: down }
+      if (up) return { ch: '▀', color: up }
+      if (down) return { ch: '▄', color: down }
+      return { ch: ' ' }
+    }))
+  }
+
+  const sparking = t % SPARK_PERIOD >= SPARK_START && t % SPARK_PERIOD < SPARK_START + SPARK_LEN
+  const cheek = kept.findIndex(k => k.r === CHEEK_ROW) >> 1
+  if (sparking && cheek >= 0) {
+    for (const c of SPARK_COLS) {
+      for (let dr = -1; dr <= 1; dr++) {
+        const cell = rows[cheek + dr]?.[c]
+        if (!cell || cell.ch !== ' ' || (dr !== 0 && hash(dr + 2, c, t) % 3 === 0)) continue
+        rows[cheek + dr][c] = { ch: dr === 0 ? '*' : SPARK_CHARS[hash(dr + 2, c, t >> 1) % SPARK_CHARS.length], color: 'warning', bold: true }
+      }
+    }
+  }
+
+  rows.push(Array.from({ length: W }, (_, c): Cell => ({ ch: GRASS[c], dim: true })))
   return rows
 }
 
-const same = (a: Cell, b: Cell) => a.color === b.color && !!a.dim === !!b.dim && !!a.bold === !!b.bold
+const same = (a: Cell, b: Cell) => a.color === b.color && a.bg === b.bg && !!a.dim === !!b.dim && !!a.bold === !!b.bold
 
 const Tree: ClientModule<TreeProps, number> = (props, s) => {
   const { Box, Text } = s.elements
@@ -130,7 +143,7 @@ const Tree: ClientModule<TreeProps, number> = (props, s) => {
         return (
           <Text key={String(i)}>
             {runs.map((run, j) => (
-              <Text key={String(j)} color={run.color} dimColor={run.dim} bold={run.bold}>
+              <Text key={String(j)} color={run.color} backgroundColor={run.bg} dimColor={run.dim} bold={run.bold}>
                 {run.ch}
               </Text>
             ))}
