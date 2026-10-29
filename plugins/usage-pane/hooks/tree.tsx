@@ -3,40 +3,40 @@ import type { ClientModule } from 'claude-code'
 const FRAME_MS = 150
 const W = 21
 const ART = [
-  '  /\\         /\\',
-  '  \\ \\_______/ /',
-  '   |         |',
-  '   | o     o |',
-  '  (@)  \\_/  (@)',
-  '   \\         /',
-  "   /`-.___.-'\\",
-  '  ( |       | )',
-  '   \\|_______|/',
+  '\.             ./',
+  ' \:.         .:/',
+  "  \`-._____.-'/",
+  '  |  o     o  |',
+  '  |(@) \_/ (@)|',
+  '   \         /',
+  "  /`-._____.-'\\",
+  ' ( |         | )',
+  '  \|_________|/',
 ]
 const TAIL: [number, number, string][] = [
-  [1, 19, '/|'],
-  [2, 18, '/ |'],
-  [3, 17, '/_ |'],
-  [4, 19, '/'],
-  [5, 18, '/'],
-  [6, 17, '/'],
-  [7, 15, '_/'],
+  [1, 18, '/|'],
+  [2, 17, '/ |'],
+  [3, 16, '/_ |'],
+  [4, 18, '/'],
+  [5, 17, '/'],
+  [6, 16, '/'],
 ]
 export const FULL_ROWS = ART.length + 1
 export const MIN_ROWS = 5
 // Rows dropped first as the pane gets shorter, chosen so the face stays readable.
-const DROP_ORDER = [2, 5, 7, 1, 6]
+const DROP_ORDER = [5, 7, 0, 8, 2]
 const EYE_ROW = 3
 const EYES = [5, 11]
 const CHEEK_ROW = 4
-const CHEEKS = [3, 13]
+const CHEEKS = [4, 12]
+const MOUTH = [7, 8, 9]
 const BLINK_PERIOD = 40
 const BLINK_AT = 20
 const BLINK_LEN = 2
 const SPARK_PERIOD = 40
 const SPARK_START = 18
 const SPARK_LEN = 12
-const SPARKS = [[0, 2], [-1, 1], [1, 1]]
+const SPARKS = [[0, 3], [-1, 3], [1, 3]]
 const SPARK_CHARS = ['*', '+', '\'', '`']
 const TWITCH_PERIOD = 55
 const TWITCH_AT = 8
@@ -70,21 +70,22 @@ function scene(t: number, height: number): Cell[][] {
     return row
   })
 
-  const ear = twitching ? 14 : 13
-  art[0][13] = { ch: ' ' }
-  for (const c of [2, ear]) {
-    art[0][c] = { ch: '/', bold: true }
-    art[0][c + 1] = { ch: '\\', bold: true }
-  }
+  const ear = twitching ? 16 : 15
+  art[0][15] = { ch: ' ' }
+  art[0][16] = { ch: ' ' }
+  art[0][0] = { ch: '\\', bold: true }
+  art[0][1] = { ch: '.', bold: true }
+  art[0][ear] = { ch: '.', bold: true }
+  art[0][ear + 1] = { ch: '/', bold: true }
 
   for (const c of EYES) art[EYE_ROW][c] = { ch: blinking ? '-' : 'o', bold: true }
-  for (const c of [7, 8, 9]) art[CHEEK_ROW][c] = { ch: ART[CHEEK_ROW][c], color: 'error' }
+  for (const c of MOUTH) art[CHEEK_ROW][c] = { ch: ART[CHEEK_ROW][c], color: 'error' }
   for (const c of CHEEKS) {
     art[CHEEK_ROW][c] = { ch: '@', color: sparking ? 'warning' : 'error', bold: true }
     if (!sparking) continue
     SPARKS.forEach(([dr, dc], i) => {
       if (i > 0 && hash(i, c, t) % 3 === 0) return
-      art[CHEEK_ROW + dr][c < 8 ? c - dc : c + dc] ={ ch: i === 0 ? '*' : SPARK_CHARS[hash(i, c, t >> 1) % SPARK_CHARS.length], color: 'warning', bold: true }
+      art[CHEEK_ROW + dr][c < 8 ? c - dc : c + dc] = { ch: i === 0 ? '*' : SPARK_CHARS[hash(i, c, t >> 1) % SPARK_CHARS.length], color: 'warning', bold: true }
     })
   }
 

@@ -125,7 +125,7 @@ test('pikachu blinks, twitches an ear and sparks from its cheeks', async ($, on)
     const ui = await $.ui.mount({ ...PANE, surface })
     const text = async () => (await ui.find({ type: 'Box', in: 'tree' }))?.text ?? ''
     const still = await text()
-    expect(still).toContain('| o     o |')
+    expect(still).toContain('|  o     o  |')
     expect(still).toContain('(_)')
     expect(still).not.toContain('*')
     let blinked = false
@@ -133,7 +133,7 @@ test('pikachu blinks, twitches an ear and sparks from its cheeks', async ($, on)
     for (let i = 0; i < 40; i++) {
       await ui.advance(150)
       const now = await text()
-      if (now.includes('| -     - |')) blinked = true
+      if (now.includes('|  -     -  |')) blinked = true
       if (now.includes('*')) sparked = true
     }
     expect({ blinked, sparked }).toEqual({ blinked: true, sparked: true })
