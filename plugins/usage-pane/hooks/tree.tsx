@@ -35,8 +35,8 @@ const PALETTE: Record<string, string> = {
 }
 export const FULL_ROWS = PIXELS.length / 2 + 1
 export const MIN_ROWS = 5
-// Pixel rows dropped first as the pane gets shorter, chosen so the face stays readable.
-const DROP_ORDER = [15, 13, 16, 5, 4, 12, 14, 1, 6, 3]
+// Pixel rows dropped first as the pane gets shorter, chosen so the face stays readable and the body keeps its length.
+const DROP_ORDER = [16, 5, 4, 1, 15, 13, 12, 14, 6, 3]
 const EYE_TOP = 7
 const EYES = [4, 5, 9, 10]
 const CHEEK_ROW = 9
