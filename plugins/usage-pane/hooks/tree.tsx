@@ -2,33 +2,46 @@ import type { ClientModule } from 'claude-code'
 
 const FRAME_MS = 150
 const W = 21
-const MID = 10
-const CANOPIES = [
-  [4, 6, 4],
-  [3, 6, 6, 4],
-  [3, 6, 7, 6, 4],
-  [3, 6, 8, 8, 6, 4],
-  [3, 6, 8, 9, 9, 8, 5],
+const ART = [
+  '  /\\         /\\',
+  '  \\ \\_______/ /',
+  '   |         |',
+  '   | o     o |',
+  '  (@)  \\_/  (@)',
+  '   \\         /',
+  "   /`-.___.-'\\",
+  '  ( |       | )',
+  '   \\|_______|/',
 ]
-export const FULL_ROWS = 10
+const TAIL: [number, number, string][] = [
+  [1, 19, '/|'],
+  [2, 18, '/ |'],
+  [3, 17, '/_ |'],
+  [4, 19, '/'],
+  [5, 18, '/'],
+  [6, 17, '/'],
+  [7, 15, '_/'],
+]
+export const FULL_ROWS = ART.length + 1
 export const MIN_ROWS = 5
-const LEAF = '@'
-const RUSTLE = ['&', '%', '8']
-const GUST_PERIOD = 40
-const GUST_LEAD = 6
-const LEAF_RELEASE = 18
-const LEAF_LIFE = 16
-const APPLES = [
-  { r: 2, c: MID - 4, period: 150, offset: 60 },
-  { r: 3, c: MID + 5, period: 190, offset: 30 },
-  { r: 4, c: MID - 6, period: 170, offset: 100 },
-  { r: 5, c: MID + 4, period: 210, offset: 0 },
-]
-const APPLE_BUD = 10
-const APPLE_RIPE = 25
-const APPLE_ON_GROUND = 25
-const APPLE_GONE = 15
-const ROOTS = '_/|\\_'
+// Rows dropped first as the pane gets shorter, chosen so the face stays readable.
+const DROP_ORDER = [2, 5, 7, 1, 6]
+const EYE_ROW = 3
+const EYES = [5, 11]
+const CHEEK_ROW = 4
+const CHEEKS = [3, 13]
+const BLINK_PERIOD = 40
+const BLINK_AT = 20
+const BLINK_LEN = 2
+const SPARK_PERIOD = 40
+const SPARK_START = 18
+const SPARK_LEN = 12
+const SPARKS = [[0, 2], [-1, 1], [1, 1]]
+const SPARK_CHARS = ['*', '+', '\'', '`']
+const TWITCH_PERIOD = 55
+const TWITCH_AT = 8
+const TWITCH_LEN = 3
+const FEET = [4, 10]
 const GRASS = ',.\'.,;.,\'.,.;,.\',.,;.'
 
 type Cell = { ch: string; color?: string; dim?: boolean; bold?: boolean }
@@ -44,64 +57,53 @@ const blank = (): Cell[] => Array.from({ length: W }, () => ({ ch: ' ' }))
 export type TreeProps = { rows: number }
 
 function scene(t: number, height: number): Cell[][] {
-  const withStem = height >= FULL_ROWS
-  const canopy = CANOPIES[Math.max(0, Math.min(CANOPIES.length - 1, height - (withStem ? 3 : 2) - 3))]
-  const phase = t % GUST_PERIOD
-  const gust = phase - GUST_LEAD
-  const gusting = gust >= 0 && gust <= W
-  const rows: Cell[][] = []
+  const full = height >= FULL_ROWS
+  const sparking = t % SPARK_PERIOD >= SPARK_START && t % SPARK_PERIOD < SPARK_START + SPARK_LEN
+  const blinking = (t + BLINK_AT) % BLINK_PERIOD < BLINK_LEN
+  const twitching = (t + TWITCH_AT) % TWITCH_PERIOD < TWITCH_LEN
 
-  canopy.forEach((half, r) => {
+  const art: Cell[][] = ART.map(line => {
     const row = blank()
-    const lean = r < 2 && gust > 4 && gust < 16 ? 1 : 0
-    for (let c = MID - half; c <= MID + half; c++) {
-      const x = c + lean
-      const inGust = gusting && Math.abs(c - gust + r * 0.5) < 1.5
-      const rustle = hash(r, c, t) % 29 === 0
-      const shade = hash(r, c) % 4 === 0
-      row[x] =
-        inGust || rustle
-          ? { ch: RUSTLE[hash(r, c, t >> 1) % RUSTLE.length], color: 'success', bold: inGust }
-          : { ch: LEAF, color: 'success', dim: shade }
+    for (let c = 0; c < line.length; c++) {
+      if (line[c] !== ' ') row[c] = { ch: line[c], color: 'warning' }
     }
-    rows.push(row)
+    return row
   })
 
-  const trunk = blank()
-  trunk[MID - 1] = { ch: '\\', color: 'warning' }
-  trunk[MID] = { ch: '|', color: 'warning' }
-  trunk[MID + 1] = { ch: '/', color: 'warning' }
-  rows.push(trunk)
-
-  if (withStem) {
-    const stem = blank()
-    stem[MID] = { ch: '|', color: 'warning' }
-    rows.push(stem)
+  const ear = twitching ? 14 : 13
+  art[0][13] = { ch: ' ' }
+  for (const c of [2, ear]) {
+    art[0][c] = { ch: '/', bold: true }
+    art[0][c + 1] = { ch: '\\', bold: true }
   }
+
+  for (const c of EYES) art[EYE_ROW][c] = { ch: blinking ? '-' : 'o', bold: true }
+  for (const c of [7, 8, 9]) art[CHEEK_ROW][c] = { ch: ART[CHEEK_ROW][c], color: 'error' }
+  for (const c of CHEEKS) {
+    art[CHEEK_ROW][c] = { ch: '@', color: sparking ? 'warning' : 'error', bold: true }
+    if (!sparking) continue
+    SPARKS.forEach(([dr, dc], i) => {
+      if (i > 0 && hash(i, c, t) % 3 === 0) return
+      art[CHEEK_ROW + dr][c < 8 ? c - dc : c + dc] ={ ch: i === 0 ? '*' : SPARK_CHARS[hash(i, c, t >> 1) % SPARK_CHARS.length], color: 'warning', bold: true }
+    })
+  }
+
+  if (full) {
+    for (const [r, c, s] of TAIL) {
+      for (let i = 0; i < s.length; i++) if (s[i] !== ' ') art[r][c + i] = { ch: s[i], color: 'warning', bold: true }
+    }
+  }
+
+  const dropped = new Set(DROP_ORDER.slice(0, Math.max(0, FULL_ROWS - height)))
+  const rows = art.filter((_, r) => !dropped.has(r))
 
   const ground = Array.from({ length: W }, (_, c): Cell => ({ ch: GRASS[c], dim: true }))
-  for (let i = 0; i < ROOTS.length; i++) ground[MID - 2 + i] = { ch: ROOTS[i], color: 'warning' }
+  for (const c of FEET) {
+    ground[c] = { ch: '(', color: 'warning' }
+    ground[c + 1] = { ch: '_', color: 'warning' }
+    ground[c + 2] = { ch: ')', color: 'warning' }
+  }
   rows.push(ground)
-
-  const groundRow = rows.length - 1
-  for (const a of APPLES) {
-    if (a.r >= canopy.length - 1 || Math.abs(a.c - MID) >= canopy[a.r]) continue
-    const p = (t + a.offset) % a.period
-    const drop = a.period - APPLE_ON_GROUND - APPLE_GONE
-    if (p < APPLE_BUD) rows[a.r][a.c] = { ch: '.', color: 'success', bold: true }
-    else if (p < APPLE_RIPE) rows[a.r][a.c] = { ch: 'o', color: 'warning' }
-    else if (p < drop) rows[a.r][a.c] = { ch: 'o', color: 'error', bold: true }
-    else if (p < a.period - APPLE_GONE) rows[Math.min(a.r + p - drop, groundRow)][a.c] = { ch: 'o', color: 'error', bold: true }
-  }
-
-  const k = phase - LEAF_RELEASE
-  if (k >= 0 && k < LEAF_LIFE) {
-    const top = canopy.length
-    const r = Math.min(top + Math.floor(k / 3), rows.length - 1)
-    const landed = r === rows.length - 1
-    const c = Math.min(W - 1, MID + 6 + Math.floor(Math.min(k, 9) / 2) + (landed ? 0 : Math.round(Math.sin(k))))
-    rows[r][c] = { ch: landed ? '.' : '*', color: landed ? 'warning' : 'success', bold: !landed }
-  }
 
   return rows
 }

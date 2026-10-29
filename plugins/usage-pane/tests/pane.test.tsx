@@ -117,45 +117,29 @@ test('sums input and output from completed main-loop turns only', async ($, on) 
   await ui.unmount()
 })
 
-test('a gust ripples through the tree and drops a leaf', async ($, on) => {
+test('pikachu blinks, twitches an ear and sparks from its cheeks', async ($, on) => {
   mock.clock(on, { now: NOW })
   on('session.model', () => ({ value: 'claude-opus-5-5' }))
   on('session.usage', () => ({ value: null }))
   for (const surface of ['terminal', 'desktop'] as const) {
     const ui = await $.ui.mount({ ...PANE, surface })
-    const still = (await ui.find({ type: 'Box', in: 'tree' }))?.text
-    expect(still).toContain('_/|\\_')
+    const text = async () => (await ui.find({ type: 'Box', in: 'tree' }))?.text ?? ''
+    const still = await text()
+    expect(still).toContain('| o     o |')
+    expect(still).toContain('(_)')
     expect(still).not.toContain('*')
-    await ui.advance(150 * 12)
-    expect((await ui.find({ type: 'Box', in: 'tree' }))?.text).not.toBe(still)
-    await ui.advance(150 * 8)
-    expect(await ui.find({ text: /\*/, in: 'tree' })).toBeDefined()
+    let blinked = false
+    let sparked = false
+    for (let i = 0; i < 40; i++) {
+      await ui.advance(150)
+      const now = await text()
+      if (now.includes('| -     - |')) blinked = true
+      if (now.includes('*')) sparked = true
+    }
+    expect({ blinked, sparked }).toEqual({ blinked: true, sparked: true })
+    expect(await text()).toBe(still)
     await ui.unmount()
   }
-})
-
-test('apples ripen on the tree, fall to the ground and grow back', async ($, on) => {
-  mock.clock(on, { now: NOW })
-  on('session.model', () => ({ value: 'claude-opus-5-5' }))
-  on('session.usage', () => ({ value: null }))
-  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
-  const scene = async () => {
-    const text = (await ui.find({ type: 'Box', in: 'tree' }))?.text ?? ''
-    return { onTree: (text.slice(0, -21).match(/o/g) ?? []).length, onGround: text.slice(-21).includes('o') }
-  }
-  expect(await scene()).toEqual({ onTree: 3, onGround: false })
-  let fell = false
-  let cleared = false
-  let regrown = false
-  for (let i = 0; i < 400 && !regrown; i++) {
-    await ui.advance(150)
-    const { onTree, onGround } = await scene()
-    if (onGround) fell = true
-    if (fell && !onGround) cleared = true
-    if (cleared && onTree === 4) regrown = true
-  }
-  expect({ fell, cleared, regrown }).toEqual({ fell: true, cleared: true, regrown: true })
-  await ui.unmount()
 })
 
 test('a short pane shrinks the tree to fit, then drops it', async ($, on) => {

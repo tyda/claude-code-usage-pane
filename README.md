@@ -10,7 +10,7 @@ A usage dashboard for Claude Code that docks on the right side of the terminal. 
 - a countdown to each limit's reset
 - session input and output tokens
 - `WARNING` and `CRITICAL` states as context fills up
-- an animated ASCII apple tree at the bottom
+- an animated ASCII Pikachu at the bottom
 
 This repository is a Claude Code plugin marketplace named `claude-code-usage-pane`. It ships one plugin, `usage-pane`.
 
@@ -26,34 +26,35 @@ This repository is a Claude Code plugin marketplace named `claude-code-usage-pan
   - `tokens / window` and a severity status: `NORMAL` below 70%, `WARNING` from 70%, `CRITICAL` from 90%.
   - `In X · Out Y`: input and output tokens summed over main-loop turns. Subagent turns are excluded, and `/clear` resets the totals.
 - **5-hour and 7-day limits**: a bar, `Used X% | Left Y%`, and the time until reset (for example `Reset 2h14m (12:14)` or `Reset 3d0h (10/10 10:00)`).
-- **Apple tree**: an animated ASCII tree centered at the bottom of the pane (see below).
+- **Pikachu**: an animated ASCII Pikachu at the bottom of the pane (see below).
 - Refreshes every 30 seconds and after each turn.
 - Any value that isn't reported shows `Unavailable` instead of a guess.
 - Adds a `/usage-pane` command that reopens the pane and reports where it's placed.
 
-## The apple tree
+## Pikachu
 
 ```
-       @@@@@@@
-    @@@@@@@@%@@@@
-  @@@@o@88@@@@@@@@@
- @@@@@@@@@8@@@@o@@@@
- @@@o@@@@@@@@@@@@@@@
-  @@@@@@@@@@@&.@@@@
-     @@@@@@@@@@@
-         \|/     *
-          |
-,.'.,;.,_/|\_,.',.,;.
+  /\         /\
+  \ \_______/ /     /|
+   |         |    / |
+   | o     o |   /_ |
+  (@)  \_/  (@)    /
+   \         /    /
+   /`-.___.-'\   /
+  ( |       | )_/
+   \|_______|/
+,.'.(_);.,'(_).;,.',.
 ```
 
-- **Wind**: every few seconds a gust sweeps across the canopy from left to right. The leaves it touches flip to `&` `%` `8` and brighten, and the treetop leans with it. Between gusts a few leaves rustle at random.
-- **Falling leaves**: each gust shakes a leaf `*` loose. It drifts down and rests on the grass for a moment.
-- **Apples**: four apples grow from a green bud `.`, turn yellow, then ripen to red `o`. A ripe apple falls to the ground, lies there for a few seconds, and a new bud grows in its place. Each apple keeps its own 22–32 second cycle, so they rarely fall together.
-- The tree draws on the `terminal` and `desktop` surfaces. Its animation runs on the drawing thread at about 7 frames a second and never refetches usage data.
+- **Blink**: every 6 seconds the eyes close `-` for a moment.
+- **Sparks**: every 6 seconds the red cheeks `@` flash yellow and crackle with sparks `*` `+`.
+- **Ear twitch**: now and then the right ear flicks outward.
+- When the pane is short, Pikachu drops rows to fit and hides its tail.
+- It draws on the `terminal` and `desktop` surfaces. Its animation runs on the drawing thread at about 7 frames a second and never refetches usage data.
 
 ## Marquee
 
-A one-line marquee under the tree scrolls the text of a file you choose.
+A one-line marquee under Pikachu scrolls the text of a file you choose.
 
 - Set the file in `/config` under **usage-pane → Marquee file** (an absolute path, for example `D:\notes\marquee.txt`). Leave it empty to hide the marquee.
 - Non-empty lines are joined into one line separated by `·`. Wide (CJK) characters scroll one character at a time.
@@ -122,7 +123,7 @@ plugins/usage-pane/
   .claude-plugin/plugin.json        plugin manifest
   hooks/hooks.json                  hooks module list
   hooks/register.tsx                pane, command and event hooks
-  hooks/tree.tsx                    animated apple tree (Client surface module)
+  hooks/tree.tsx                    animated Pikachu (Client surface module)
   hooks/usage.ts                    severity and remaining-percentage helpers
   types/index.d.ts                  $.state contract
   tests/pane.test.tsx               plugin tests
