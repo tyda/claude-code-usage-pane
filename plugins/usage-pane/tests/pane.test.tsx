@@ -117,7 +117,7 @@ test('sums input and output from completed main-loop turns only', async ($, on) 
   await ui.unmount()
 })
 
-test('pikachu blinks, twitches an ear and sparks from its cheeks', async ($, on) => {
+test('charmander blinks, its flame flickers and throws embers', async ($, on) => {
   mock.clock(on, { now: NOW })
   on('session.model', () => ({ value: 'claude-opus-5-5' }))
   on('session.usage', () => ({ value: null }))
@@ -132,14 +132,16 @@ test('pikachu blinks, twitches an ear and sparks from its cheeks', async ($, on)
     expect(still).toContain('▀')
     expect(still).not.toContain('*')
     let blinked = false
-    let sparked = false
+    let flickered = false
+    let embered = false
     for (let i = 0; i < 40; i++) {
       await ui.advance(150)
       const now = await text()
       if (!now.includes('#ffffff')) blinked = true
-      if (now.includes('*')) sparked = true
+      if (now !== still && !now.includes('*') && now.includes('#ffffff')) flickered = true
+      if (now.includes('*')) embered = true
     }
-    expect({ blinked, sparked }).toEqual({ blinked: true, sparked: true })
+    expect({ blinked, flickered, embered }).toEqual({ blinked: true, flickered: true, embered: true })
     expect(await text()).toBe(still)
     await ui.unmount()
   }
