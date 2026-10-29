@@ -128,7 +128,8 @@ test('pikachu blinks, twitches an ear and sparks from its cheeks', async ($, on)
       return runs.map(r => `${r.props.color ?? ''}/${r.props.backgroundColor ?? ''}:${r.text}`).join('|')
     }
     const still = await text()
-    expect(still).toContain('#ffffff')
+    const openEye = '#111111/#111111'
+    expect(still).toContain(openEye)
     expect(still).toContain('▀')
     expect(still).not.toContain('*')
     let blinked = false
@@ -136,7 +137,7 @@ test('pikachu blinks, twitches an ear and sparks from its cheeks', async ($, on)
     for (let i = 0; i < 40; i++) {
       await ui.advance(150)
       const now = await text()
-      if (!now.includes('#ffffff')) blinked = true
+      if (!now.includes(openEye)) blinked = true
       if (now.includes('*')) sparked = true
     }
     expect({ blinked, sparked }).toEqual({ blinked: true, sparked: true })
@@ -153,10 +154,10 @@ test('a short pane shrinks the tree to fit, then drops it', async ($, on) => {
     const ui = await $.ui.mount({ ...PANE, surface: 'terminal', props: { ...PANE.props, scroll: { offset: 0, bodyRows } } })
     const tree = await ui.find({ type: 'Box', in: 'tree' }).catch(() => undefined)
     await ui.unmount()
-    return tree ? tree.text.length / 21 : 0
+    return tree ? tree.text.length / 16 : 0
   }
-  expect(await rowsOf(40)).toBe(10)
-  expect(await rowsOf(24)).toBe(8)
+  expect(await rowsOf(40)).toBe(8)
+  expect(await rowsOf(23)).toBe(7)
   expect(await rowsOf(21)).toBe(5)
   expect(await rowsOf(20)).toBe(0)
 })

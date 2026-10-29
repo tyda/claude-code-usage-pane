@@ -36,16 +36,14 @@ This repository is a Claude Code plugin marketplace named `claude-code-usage-pan
 A full-color pixel-art Pikachu drawn with half blocks `▀` `▄` (yellow body, black ear tips and eyes, red cheeks, lightning tail):
 
 ```
-█▄           ▄█  ▄▄▄▄
- ██▄       ▄██  ████▀
-  ███▄▄▄▄▄███    ▀█▄▄
- ▄███████████▄  ▄██▀▀
- █████████████  ▀█▄
- ▀███████████▀  ▄▀
-  ▄█████████▄▄▄▀▀
- ▀▀▄███████▄▀▀
-   ██▀▀▀▀▀██
-,.'.,;.,'.,.;,.',.,;.
+ █▄       ▄█  ▄▄
+  ██▄▄▄▄▄██  ██▀
+ ███████████ ▄█▀
+ ███████████ ▄▀
+  ▀████████ ▄▀
+ ▀▀███████▀▀
+  ▄██▀▀▀██▄
+,.'.,;.,'.,.;,.'
 ```
 
 - **Blink**: every 6 seconds the eyes close for a moment.

@@ -1,46 +1,40 @@
 import type { ClientModule } from 'claude-code'
 
 const FRAME_MS = 150
-const W = 21
-// Two pixels per terminal row, drawn as half blocks: K ear tip, E eye, W eye shine, R cheek, M tongue, B tail base.
+const W = 16
+// Two pixels per terminal row, drawn as half blocks: K ear tip, E eye, R cheek, B tail base.
 const PIXELS = [
-  'K.............K......',
-  'KK...........KK..YYYY',
-  '.KK.........KK..YYYYY',
-  '.YYY.......YYY..YYYY.',
-  '..YYY.....YYY....YY..',
-  '..YYYYYYYYYYY.....YYY',
-  '..YYYYYYYYYYY....YYYY',
-  '.YYYEEYYYEEYYY..YYY..',
-  '.YYYEWYYYEWYYY..YY...',
-  '.YRRYYYYYYYRRY...YY..',
-  '.YRRYYEMEYYRRY...Y...',
-  '..YYYYYMYYYYY...Y....',
-  '...YYYYYYYYY...BY....',
-  '..YYYYYYYYYYYBB......',
-  '.YY.YYYYYYY.YY.......',
-  '...YYYYYYYYY.........',
-  '...YYYYYYYYY.........',
-  '...YY.....YY.........',
+  '.K.........K....',
+  '.KK.......KK..YY',
+  '..YY.....YY..YYY',
+  '..YYYYYYYYY..YY.',
+  '.YYYEYYYEYYY..YY',
+  '.YYYEYYYEYYY.YY.',
+  '.RRYYYYYYYRR..Y.',
+  '.RRYYEYEYYRR.Y..',
+  '..YYYYEYYYY..Y..',
+  '...YYYYYYYY.Y...',
+  '.YYYYYYYYYBB....',
+  '...YYYYYYY......',
+  '...YYYYYYY......',
+  '..YYY...YYY.....',
 ]
 const PALETTE: Record<string, string> = {
   K: '#3a3a3a',
   E: '#111111',
-  W: '#ffffff',
   Y: '#f8d030',
   R: '#e83838',
-  M: '#a02828',
   B: '#8a5a20',
   S: '#fff27a',
 }
 export const FULL_ROWS = PIXELS.length / 2 + 1
 export const MIN_ROWS = 5
 // Pixel rows dropped first as the pane gets shorter, chosen so the face stays readable.
-const DROP_ORDER = [15, 13, 16, 5, 4, 12, 14, 1, 6, 3]
-const EYE_TOP = 7
-const EYES = [4, 5, 9, 10]
-const CHEEK_ROW = 9
-const SPARK_COLS = [0, 14]
+const DROP_ORDER = [11, 12, 9, 3, 1, 10]
+const EYE_TOP = 4
+const EYES = [4, 8]
+const CHEEK_ROW = 6
+const SPARK_COLS = [0, 12]
 const BLINK_PERIOD = 40
 const BLINK_AT = 20
 const BLINK_LEN = 2
@@ -51,7 +45,7 @@ const SPARK_CHARS = ['*', '+', '\'', '`']
 const TWITCH_PERIOD = 55
 const TWITCH_AT = 8
 const TWITCH_LEN = 3
-const GRASS = ',.\'.,;.,\'.,.;,.\',.,;.'
+const GRASS = ',.\'.,;.,\'.,.;,.\''
 
 type Cell = { ch: string; color?: string; bg?: string; dim?: boolean; bold?: boolean }
 
@@ -76,7 +70,7 @@ function pixels(t: number): string[][] {
     }
   }
   if (twitching) {
-    for (const [r, from, to] of [[0, 14, 14], [1, 13, 14]]) {
+    for (const [r, from, to] of [[0, 11, 11], [1, 10, 11]]) {
       for (let c = from; c <= to; c++) px[r][c] = '.'
       for (let c = from; c <= to; c++) px[r][c + 1] = 'K'
     }
