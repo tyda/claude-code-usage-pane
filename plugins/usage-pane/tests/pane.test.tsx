@@ -156,9 +156,9 @@ test('a short pane shrinks the tree to fit, then drops it', async ($, on) => {
     return tree ? tree.text.length / 21 : 0
   }
   expect(await rowsOf(40)).toBe(10)
-  expect(await rowsOf(24)).toBe(8)
-  expect(await rowsOf(21)).toBe(5)
-  expect(await rowsOf(20)).toBe(0)
+  expect(await rowsOf(20)).toBe(8)
+  expect(await rowsOf(17)).toBe(5)
+  expect(await rowsOf(16)).toBe(0)
 })
 
 test('marquee scrolls the configured file joined into one line', { options: { marqueeFile: 'D:/notes/marquee.txt' } }, async ($, on) => {

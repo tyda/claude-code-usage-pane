@@ -140,16 +140,15 @@ export const register: Register = (on, options) => {
     const graphic = e.surface === 'terminal' || e.surface === 'desktop'
     const inline = e.props.placement !== 'dock'
     const showMarquee = !!marquee && graphic
-    // Rows above the tree: Model 2, Context 3 (+1 inline note), both limits 3 each, plus the gaps between them.
-    const treeRows = Math.min(FULL_ROWS, e.props.scroll.bodyRows - (2 + 3 + (inline ? 1 : 0) + 3 + 3 + 4) - 1 - (showMarquee ? 2 : 0))
+    // Rows above the tree: Model 1, Context 3 (+1 inline note), both limits 3 each, plus the gap before the tree.
+    const treeRows = Math.min(FULL_ROWS, e.props.scroll.bodyRows - (1 + 3 + (inline ? 1 : 0) + 3 + 3 + 1) - 1 - (showMarquee ? 2 : 0))
 
     return (
       <Box flexDirection="column" gap={1}>
         <Box flexDirection="column">
-          <Text bold>Model</Text>
-          <Text wrap="truncate-end">{model || 'Unavailable'}</Text>
-        </Box>
-        <Box flexDirection="column">
+          <Text wrap="truncate-end">
+            <Text bold>Model</Text> {model || 'Unavailable'}
+          </Text>
           <Text>
             <Text bold>{pct === undefined ? 'Context' : `Context ${pct}%`}</Text>{' '}
             {pct === undefined ? <Text dimColor>Unavailable</Text> : <Text color={tone(pct)}>{bar(pct)}</Text>}
@@ -171,9 +170,9 @@ export const register: Register = (on, options) => {
           </Text>
           <Text>{sumsLive ? `In ${kTokens(sumsLive.input)} · Out ${kTokens(sumsLive.output)}` : 'In/Out Unavailable'}</Text>
           {inline ? <Text dimColor>placement: inline (needs fullscreen)</Text> : null}
+          {limit('five_hour', '5-hour')}
+          {limit('seven_day', '7-day')}
         </Box>
-        {limit('five_hour', '5-hour')}
-        {limit('seven_day', '7-day')}
         {graphic && treeRows >= MIN_ROWS ? (
           <Box justifyContent="center">
             <Client key="tree" module="./tree.tsx" props={{ rows: treeRows }} />
