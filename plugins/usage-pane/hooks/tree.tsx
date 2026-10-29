@@ -4,24 +4,24 @@ const FRAME_MS = 150
 const W = 21
 // Two pixels per terminal row, drawn as half blocks: K ear tip, E eye, W eye shine, R cheek, M tongue, B tail base.
 const PIXELS = [
-  'KK.............KK....',
-  'KKK...........KKK....',
-  '.KYY.........YYK..YYY',
-  '..YYY.......YYY..YYYY',
-  '...YYYYYYYYYYY..YYYY.',
-  '..YYYYYYYYYYYYY..YY..',
-  '.YYYYYYYYYYYYYYY..YYY',
-  '.YYEEYYYYYYYEEYY.YYY.',
-  '.YYEWYYYYYYYEWYY.YY..',
-  '.RRYYYYYYYYYYYRR..YYY',
-  '.RRYYYEYYYEYYYRR.YY..',
-  '..YYYYYEMEYYYYY.YY...',
-  '...YYYYYMYYYYYBBY....',
-  '..YYYYYYYYYYYYYB.....',
-  '.YY.YYYYYYYYY.YY.....',
-  '....YYYYYYYYY........',
-  '....YYYYYYYYY........',
-  '...YYYY...YYYY.......',
+  'K.............K......',
+  'KK...........KK..YYYY',
+  '.KK.........KK..YYYYY',
+  '.YYY.......YYY..YYYY.',
+  '..YYY.....YYY....YY..',
+  '..YYYYYYYYYYY.....YYY',
+  '..YYYYYYYYYYY....YYYY',
+  '.YYYEEYYYEEYYY..YYY..',
+  '.YYYEWYYYEWYYY..YY...',
+  '.YRRYYYYYYYRRY...YY..',
+  '.YRRYYEMEYYRRY...Y...',
+  '..YYYYYMYYYYY...Y....',
+  '...YYYYYYYYY...BY....',
+  '..YYYYYYYYYYYBB......',
+  '.YY.YYYYYYY.YY.......',
+  '...YYYYYYYYY.........',
+  '...YYYYYYYYY.........',
+  '...YY.....YY.........',
 ]
 const PALETTE: Record<string, string> = {
   K: '#3a3a3a',
@@ -38,9 +38,9 @@ export const MIN_ROWS = 5
 // Pixel rows dropped first as the pane gets shorter, chosen so the face stays readable.
 const DROP_ORDER = [15, 13, 16, 5, 4, 12, 14, 1, 6, 3]
 const EYE_TOP = 7
-const EYES = [3, 4, 12, 13]
+const EYES = [4, 5, 9, 10]
 const CHEEK_ROW = 9
-const SPARK_COLS = [0, 16]
+const SPARK_COLS = [0, 14]
 const BLINK_PERIOD = 40
 const BLINK_AT = 20
 const BLINK_LEN = 2
@@ -76,7 +76,7 @@ function pixels(t: number): string[][] {
     }
   }
   if (twitching) {
-    for (const [r, from, to] of [[0, 15, 16], [1, 14, 16]]) {
+    for (const [r, from, to] of [[0, 14, 14], [1, 13, 14]]) {
       for (let c = from; c <= to; c++) px[r][c] = '.'
       for (let c = from; c <= to; c++) px[r][c + 1] = 'K'
     }
