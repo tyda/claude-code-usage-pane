@@ -115,7 +115,7 @@ export const register: Register = (on, options) => {
       const l: SessionRateLimit | undefined = usage?.rateLimits.find(x => x.kind === kind)
       if (!l) {
         return (
-          <Box flexDirection="column">
+          <Box flexDirection="column" marginTop={1}>
             <Text bold>{label}</Text>
             <Text dimColor>Unavailable</Text>
           </Box>
@@ -124,7 +124,7 @@ export const register: Register = (on, options) => {
       const reset = countdown(l.resetsAt, now)
 
       return (
-        <Box flexDirection="column">
+        <Box flexDirection="column" marginTop={1}>
           <Text>
             <Text bold>{label}</Text> <Text color={tone(l.percentUsed)}>{bar(l.percentUsed)}</Text>
           </Text>
@@ -140,8 +140,8 @@ export const register: Register = (on, options) => {
     const graphic = e.surface === 'terminal' || e.surface === 'desktop'
     const inline = e.props.placement !== 'dock'
     const showMarquee = !!marquee && graphic
-    // Rows above the tree: Model 1, Context 3 (+1 inline note), both limits 3 each, plus the gap before the tree.
-    const treeRows = Math.min(FULL_ROWS, e.props.scroll.bodyRows - (1 + 3 + (inline ? 1 : 0) + 3 + 3 + 1) - 1 - (showMarquee ? 2 : 0))
+    // Rows above the tree: Model 1, Context 3 (+1 inline note), both limits 3 each with a blank line above, plus the gap before the tree.
+    const treeRows = Math.min(FULL_ROWS, e.props.scroll.bodyRows - (1 + 3 + (inline ? 1 : 0) + 4 + 4 + 1) - 1 - (showMarquee ? 2 : 0))
 
     return (
       <Box flexDirection="column" gap={1}>
