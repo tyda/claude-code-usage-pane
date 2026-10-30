@@ -155,7 +155,7 @@ test('a short pane shrinks the tree to fit, then drops it', async ($, on) => {
     await ui.unmount()
     return tree ? tree.text.length / 21 : 0
   }
-  expect(await rowsOf(40)).toBe(10)
+  expect(await rowsOf(40)).toBe(12)
   expect(await rowsOf(22)).toBe(8)
   expect(await rowsOf(19)).toBe(5)
   expect(await rowsOf(18)).toBe(0)

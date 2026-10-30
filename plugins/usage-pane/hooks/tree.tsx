@@ -18,9 +18,13 @@ const PIXELS = [
   '..YYYYYMYYYYY...Y....',
   '...YYYYYYYYY...BY....',
   '..YYYYYYYYYYYBB......',
+  '.YYYYYYYYYYYYY.......',
   '.YY.YYYYYYY.YY.......',
   '...YYYYYYYYY.........',
   '...YYYYYYYYY.........',
+  '...YYYYYYYYY.........',
+  '...YYYYYYYYY.........',
+  '...YYY...YYY.........',
   '...YY.....YY.........',
 ]
 const PALETTE: Record<string, string> = {
@@ -36,7 +40,7 @@ const PALETTE: Record<string, string> = {
 export const FULL_ROWS = PIXELS.length / 2 + 1
 export const MIN_ROWS = 5
 // Pixel rows dropped first as the pane gets shorter, chosen so the face stays readable and the body keeps its length.
-const DROP_ORDER = [16, 5, 4, 1, 15, 13, 12, 14, 6, 3]
+const DROP_ORDER = [18, 5, 19, 4, 1, 16, 14, 17, 15, 13, 12, 20, 6, 3]
 const EYE_TOP = 7
 const EYES = [4, 5, 9, 10]
 const CHEEK_ROW = 9
